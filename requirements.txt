@@ -1,0 +1,6 @@
+# this file contains all the python required modules 
+
+flask
+psycopg
+psycopg_pool
+
