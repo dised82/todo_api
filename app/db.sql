@@ -7,6 +7,25 @@ create database to_do;
 
 \c to_do
 
+-- grant privileges to the role we created with  the script role.sql
+-- for the existing tables :
+grant select, insert, update, delete
+on all tables in schema public
+to todo_conn;
+
+grant usage, select 
+on all sequences in schema public
+to todo_conn;
+
+-- for the future tables :
+alter default privileges in schema public
+grant select, insert, update, delete  on tables 
+to todo_conn;
+
+alter default privileges in schema public
+grant usage, select on sequences
+to todo_conn;
+
 create table users(
   id serial primary key,
   name varchar(255),
