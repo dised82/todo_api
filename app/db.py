@@ -17,7 +17,7 @@ def conexion(user, password, port, database):
     else:
         cur = conn.cursor()
 
-test = conexion('admin', 'kali', '5432', 'to_do')
+#test = conexion('admin', 'kali', '5432', 'to_do')
 #data = {'user':'admin', 'password':'kali', 'port':'5432', 'db': 'to_do'}
 
 

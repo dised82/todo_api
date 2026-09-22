@@ -15,5 +15,5 @@ begin
     loop
       execute format('revoke all privileges on database %I from todo_conn;', r.datname);
     end loop;
-    rollback;
+    -- rollback;
   end $$;

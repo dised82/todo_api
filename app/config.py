@@ -2,8 +2,8 @@ import os
 
 class conndata ():
     def __init__(self) -> None:
-        self._user = 'admin'
-        self._password = 'kali'
+        self._user = 'todo_conn'
+        self._password = 'connexion_pass'
         self._port = '5432'
         self._db = 'to_do'
 

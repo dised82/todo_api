@@ -1,14 +1,15 @@
 from app.db import db_pool, db_trans
 import psycopg as psyc
 from contextlib import contextmanager
+from config import data_url
 
-#here lies the class tha that manages the data
-data = None #this data will be taken in the config.py 
+#here lies the class tha that manages the database connexion 
+data = data_url #this data will be taken in the config.py 
 
 class Connexion ():
 
     def __init__(self):
-        self._pool = db_pool(data.user(), data.password(), data.port(), data.db())
+        self._pool = db_pool(data)
         self._trans = db_trans(self._pool)
         self._pool.start()
 
