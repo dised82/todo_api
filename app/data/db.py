@@ -1,4 +1,5 @@
 import psycopg
+import uuid
 from contextlib import contextmanager
 from psycopg.errors import RaiseException
 from psycopg.rows import dict_row
@@ -55,20 +56,23 @@ class db_trans:
         self._db = db
 
     @contextmanager
-    def transaction(self):
+    def transaction(self):      # the basic to read and write everything
         with self._db.pool.connection() as conn :
             with conn.cursor(row_factory=dict_row) as cur:
                 yield cur
 
-    def read_only(self):
+    @contextmanager
+    def read_only(self):   # the read_only
         with self._db.pool.connection() as conn:
             conn.read_only = True
             with conn.cursor(row_factory=dict_row) as cur:
                 yield cur
 
-    def cursor_server(self):
+    @contextmanager
+    def cursor_server(self, itersize: int = 2000):   # for larges strams 
         with self._db.pool.connection() as conn:
-            with conn.cursor(name="name",row_factory=dict_row) as cur:
+            with conn.cursor(name=f"cur_{uuid.uuid4().hex}",row_factory=dict_row) as cur:
+                cur.itersize = itersize
                 yield cur
 
 pool = db_pool(data_url)
