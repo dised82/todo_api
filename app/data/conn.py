@@ -1,60 +1,102 @@
-from .db import db_pool, db_trans
-import psycopg as psyc
-# from contextlib import contextmanager
-from config import data_url
 from psycopg import sql
 
-#here lies the class tha that manages the database connexion 
-data = data_url #this data will be taken in the config.py 
+from ..config import data_url
+from .db import db_pool, db_trans
 
-class Connexion ():
+# import psycopg as psyc
+# from contextlib import contextmanager
 
+# here lies the class tha that manages the database connexion
+data = data_url  # this data will be taken in the config.py
+
+
+class Connexion:
     def __init__(self):
         self._pool = db_pool(data)
         self._trans = db_trans(self._pool)
-        self._pool.start()
 
     @property
     def pool(self):
         return self._pool
+
     @property
     def trans(self):
         return self._trans
 
-
     def __del__(self):
-        self._pool.stop()
+        if getattr(self, "_pool", None):
+            self._pool.stop()
 
-    def get_x(self, table:str, key:str, value:str):
+    def get_x(self, table: str, **filters):
 
-        query = sql.SQL("select * from {} where {} = %s").format(
-            sql.Identifier(table),
-            sql.Identifier(key)
+        if not filters:
+            raise ValueError("at least one filer is required")
+
+        where = sql.SQL(" and ").join(
+            sql.SQL("{} = %s").format(sql.Identifier(col)) for col in filters
+        )
+
+        query = sql.SQL("select * from {} where {}").format(
+            sql.Identifier(table), where
         )
 
         with self.trans.read_only() as cur:
-            cur.execute(query, (value,))
-            result = cur.fetchall()
+            cur.execute(query, tuple(filters.values()))
+            result = cur.fetchone()
             return result
 
-    def get_all(self, table:str ):
+    def get_all(self, table: str, **filters):
 
-        query = sql.SQL("select * from {}").format(sql.Identifier(table))
+        if not filters:
+            raise ValueError("at least one filer is required")
+
+        where = sql.SQL(" and ").join(
+            sql.SQL("{} = %s").format(sql.Identifier(col)) for col in filters
+        )
+
+        query = sql.SQL("select * from {} where {}").format(
+            sql.Identifier(table), where
+        )
 
         with self.trans.read_only() as cur:
-            cur.execute(query)
+            cur.execute(query, tuple(filters.values()))
             result = cur.fetchall()
             return result
 
-    def put(self, table:str, keys:list[str], values:list ):
+    def post(self, table: str, keys: list[str], values: list):
 
         query = sql.SQL("insert into {} ({}) values ({}) returning *").format(
             sql.Identifier(table),
             sql.SQL(", ").join(map(sql.Identifier, keys)),
-            sql.SQL(", ").join(sql.Placeholder() * len(keys))
+            sql.SQL(", ").join(sql.Placeholder() * len(keys)),
         )
 
         with self.trans.transaction() as cur:
             cur.execute(query, values)
             return cur.fetchone()
 
+    def delete(self, table: str, key: str, value):
+
+        query = sql.SQL("delete from {} where {} = %s returning *").format(
+            sql.Identifier(table), sql.Identifier(key)
+        )
+
+        with self.trans.transaction() as cur:
+            cur.execute(query, (value,))
+            return cur.fetchone()
+
+    def patch(self, table: str, data: dict, key: str, value):
+        if not data:
+            raise ValueError("nothing to update ")
+
+        query = sql.SQL("update {} set {} where {} = %s returning *").format(
+            sql.Identifier(table),
+            sql.SQL(", ").join(
+                sql.SQL("{} = %s").format(sql.Identifier(col)) for col in data
+            ),
+            sql.Identifier(key),
+        )
+
+        with self.trans.transaction() as cur:
+            cur.execute(query, [*data.values(), value])
+            return cur.fetchall()

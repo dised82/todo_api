@@ -1,7 +1,8 @@
 import os
 from datetime import timedelta
 
-class config():
+
+class config:
 
     SECRET_KEY = os.environ.get("SECRET_KEY", 'change_by_dev_only')
 
@@ -16,7 +17,7 @@ class prod_config(config):
     SESSION_COOKIE_SECURE = True
 
 
-class conndata ():
+class conndata :
     def __init__(self) -> None:
         self._user = 'todo_conn'
         self._password = 'connexion_pass'

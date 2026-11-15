@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, request
 from http import HTTPStatus
-from ..data import db
+
+from flask import Blueprint, jsonify, request
 
 log = Blueprint('routes', __name__)
 

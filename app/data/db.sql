@@ -29,7 +29,7 @@ to todo_conn;
 create table users(
   id serial primary key,
   name varchar(255),
-  uname varchar(25) unique,
+  username varchar(25) unique,
   password_hash text not null,
   created_at timestamp default now()
 );
@@ -47,7 +47,7 @@ create table element(
   list_id integer,
   name varchar(255),
   content text,
-  state boolean,
+  state boolean not null default False,
   foreign key (list_id) references list(id)
   on delete cascade
 );
