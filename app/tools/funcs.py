@@ -5,7 +5,7 @@ from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatc
 
 from ..data.conn import Connexion
 from ..data.models import do_list, element, user
-from .errors import NotFound
+from .errors import NotFound, Unauthorized
 
 ph = PasswordHasher()
 log = logging.getLogger(__name__)
@@ -30,11 +30,11 @@ conn = Connexion()
 # here lies every functions we need
 
 
-def authenticate(username: str, password: str) -> user | None:
+def authenticate(username: str, password: str) -> user:
     x = conn.get_x("users", username=username)
     if x and verify(x["password_hash"], password):
         return user.dict_put(x)
-    return None
+    raise Unauthorized("Wrong username or password.")
 
 
 # managing the lists as entities

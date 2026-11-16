@@ -73,7 +73,10 @@ class Connexion:
 
         with self.trans.transaction() as cur:
             cur.execute(query, values)
-            return cur.fetchone()
+            row = cur.fetchone()
+            if row is None:
+                raise RuntimeError("returned no row")
+            return row
 
     def delete(self, table: str, key: str, value):
 
