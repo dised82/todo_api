@@ -45,9 +45,12 @@ create table list(
 create table element(
   id serial primary key,
   list_id integer,
+  user_id integer,
   name varchar(255),
   content text,
   state boolean not null default False,
+  foreign key (user_id) references users(id)
+  on delete cascade,
   foreign key (list_id) references list(id)
   on delete cascade
 );

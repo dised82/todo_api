@@ -1,35 +1,19 @@
 import uuid
 from contextlib import contextmanager
 
-import psycopg
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
-
-# from psycopg import sql
-
-
-def conexion(user, password, port, database):
-
-    data = f"postgresql://{user}:{password}@localhost:{port}/{database}"
-
-    try:
-        conn = psycopg.connect(data)
-    except psycopg.Error as e:
-        print("postgreSQL error:", e)
-    else:
-        conn.cursor()
-
-
-# test = conexion('admin', 'kali', '5432', 'to_do')
-# data = {'user':'admin', 'password':'kali', 'port':'5432', 'db': 'to_do'}
 
 
 class db_pool:
     def __init__(self, database_url) -> None:
         self.dsn = database_url
+        self._pool = None
         self.start()
 
     def start(self):
+        if not self._pool is None:
+            self.stop()
         self._pool = ConnectionPool(
             self.dsn,
             min_size=2,
@@ -68,10 +52,12 @@ class db_trans:
 
     @contextmanager
     def read_only(self):  # the read_only
-        with self._db.pool.connection() as conn:
-            conn.read_only = True
-            with conn.cursor(row_factory=dict_row) as cur:
-                yield cur
+        with (
+            self._db.pool.connection() as conn,
+            conn.cursor(row_factory=dict_row) as cur,
+        ):
+            cur.execute("SET TRANSACTION READ ONLY")
+            yield cur
 
     @contextmanager
     def cursor_server(self, itersize: int = 2000):  # for larges strams
